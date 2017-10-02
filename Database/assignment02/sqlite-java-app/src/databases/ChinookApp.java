@@ -168,13 +168,15 @@ public class ChinookApp {
 				}
 			} else if (qd.queryType == QueryTypes.AllEmployees) {
 				// Your code for query #2
-				final String sqlQuery = "select	*	from	Employee	order by	employeeId";
+				final String sqlQuery = "select	*	from	Employee	order by	EmployeeId";
 				PreparedStatement stmnt;
 				try {
 					stmnt = connection.prepareStatement( sqlQuery );
 					final ResultSet res = stmnt.executeQuery();
+					int count = 1;
 					while (res.next() ) {
-						System.out.println(res.getString("firstName" + " " + "lastName" + " (" + "title" + ")"));
+						System.out.println(count +  ". "+res.getString("FirstName") + " " + res.getString("LastName") + " (" + res.getString("Title") + ")");
+						count++;
 					}
 				} catch (SQLException e) {
 					System.out.println(e);
@@ -182,11 +184,104 @@ public class ChinookApp {
 			} else if (qd.queryType == QueryTypes.CustomersByEmployeeNumber) {
 				// Your code for query #3
 				// Employee number as a string in qd.queryParam
+				final String sqlQuery = "select 	count (*)	from	Customer		where	supportRepId = ?";
+				PreparedStatement stmnt;
+				try {
+					stmnt = connection.prepareStatement( sqlQuery );
+					stmnt.setString( 1, qd.queryParam);
+					final ResultSet res = stmnt.executeQuery();
+					while (res.next() ) {
+						System.out.println(res.getString("count (*)"));
+					}
+				} catch (SQLException e) {
+					System.out.println(e);
+				}
 			} else if (qd.queryType == QueryTypes.AllCustomers) {
 				// Your code for query #4
+				final String sqlQuery = "select	*	 	"
+						+ "from	Customer		order by	customerId";
+				PreparedStatement stmnt;
+				try {
+					stmnt = connection.prepareStatement( sqlQuery );
+					final ResultSet res = stmnt.executeQuery();
+					int count1 = 1;
+					while (res.next() ) {
+						System.out.print(
+								count1 +  
+								". "+
+								res.getString("FirstName") + " " + 
+								res.getString("LastName") + 
+								" (" +
+								res.getString("City") +
+								", " );
+						
+						if(res.getString("State") != null){
+							System.out.print(
+									res.getString("State") +
+									", ");
+						}	
+							
+						System.out.println(res.getString("Country") +
+						")");
+						count1++;
+					}
+				} catch (SQLException e) {
+					System.out.println(e);
+				}
+				
 			} else if (qd.queryType == QueryTypes.InvoicesByCustomerId) {
 				// Your code for query #5
 				// Customer id as a string in qd.queryParam
+				final String sqlQuery = " select	( \" \" || il.invoiceLineId || \": \" || "
+										+ " \"'\"|| t.name || \"' on \" ||"
+										+ " \"'\"|| alb.title || \"' by \" ||"
+										+ " \"'\"|| a.name ||"
+										+ " \"' (1 @ $\" || t.unitPrice || \")\") as output, "
+										+ " i.invoiceId as inv, "
+										+ " i.total as tot,"
+										+ " *"
+										+ " from	Invoice i "
+										+ "	inner join"
+										+ " InvoiceLine il "
+										+ "	inner join"
+										+ " customer c"
+										+ "	inner join"
+										+ " Track t"
+										+ "	inner join"
+										+ " Album alb"
+										+ "	inner join"
+										+ " Artist a"
+										+ " on i.invoiceId = il.invoiceId"
+										+ " and i.customerId = c.customerId"
+										+ " and il.trackId = t.trackId"
+										+ " and alb.albumId = t.albumId"
+										+ " and alb.artistId = a.artistId"
+										+ " where	i.customerId = ?	order by	i.invoiceId, il.invoiceLineId";
+				PreparedStatement stmnt;
+				try {
+					stmnt = connection.prepareStatement( sqlQuery );
+					stmnt.setString( 1, qd.queryParam);
+					final ResultSet res = stmnt.executeQuery();
+					int invoiceId = 0, prev = res.getInt("inv");
+
+					System.out.println("Invoice #"+ prev + " ($" + res.getFloat("tot") + ")");
+					
+					while (res.next() ) {
+						//"Invoice #23 ($3.96)",
+						invoiceId = res.getInt("inv");
+						if(prev!= invoiceId)	{
+							System.out.println("");
+							prev = invoiceId;
+							float total = res.getFloat("tot");
+							System.out.println("Invoice #"+ invoiceId + " ($" + total + ")");
+						}
+						System.out.println(res.getString("output"));
+					}
+					System.out.println("");
+				} catch (SQLException e) {
+					System.out.println(e);
+				}
+				
 			}
 			
 		}
