@@ -2,6 +2,8 @@ package databases;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.sqlite.SQLiteConfig;
@@ -152,8 +154,31 @@ public class ChinookApp {
 			if (qd.queryType == QueryTypes.CustomerByCountry) {
 				// Your code for query #1
 				// Country in qd.queryParam
+				final String sqlQuery = "select	count (*)	from	Customer	where 	country = ?";
+				PreparedStatement stmnt;
+				try {
+					stmnt = connection.prepareStatement( sqlQuery );
+					stmnt.setString( 1, qd.queryParam);
+					final ResultSet res = stmnt.executeQuery();
+					while (res.next() ) {
+						System.out.println(res.getString("count (*)"));
+					}
+				} catch (SQLException e) {
+					System.out.println(e);
+				}
 			} else if (qd.queryType == QueryTypes.AllEmployees) {
 				// Your code for query #2
+				final String sqlQuery = "select	*	from	Employee	order by	employeeId";
+				PreparedStatement stmnt;
+				try {
+					stmnt = connection.prepareStatement( sqlQuery );
+					final ResultSet res = stmnt.executeQuery();
+					while (res.next() ) {
+						System.out.println(res.getString("firstName" + " " + "lastName" + " (" + "title" + ")"));
+					}
+				} catch (SQLException e) {
+					System.out.println(e);
+				}
 			} else if (qd.queryType == QueryTypes.CustomersByEmployeeNumber) {
 				// Your code for query #3
 				// Employee number as a string in qd.queryParam
